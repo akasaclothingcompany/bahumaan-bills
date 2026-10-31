@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#7a2e4a">
+<title>Bahumaan Bills</title>
+<style>
+:root{--ink:#1f1f1f;--muted:#666;--line:#ddd;--bg:#f6f4f0;--card:#fff;--brand:#7a2e4a;--ok:#1e7a3c;--bad:#b3261e;--warn:#9a5b00}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:480px;margin:0 auto;padding:16px}h1{font-size:20px;margin:4px 0 12px}.sub{color:var(--muted);font-size:13px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+label.f{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}label.f:first-child{margin-top:0}
+select,input[type=text],input[type=password],input[type=number]{width:100%;font-size:16px;padding:11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.row2{display:flex;gap:10px}.row2>div{flex:1}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tab{flex:1;padding:12px;border-radius:10px;border:2px solid var(--brand);background:#fff;color:var(--brand);font-size:15px;font-weight:600}
+.tab.on{background:var(--brand);color:#fff}
+.btns{display:flex;gap:10px}.big{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:64px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;border:2px solid var(--brand)}
+.cam{background:var(--brand);color:#fff}.up{background:#fff;color:var(--brand)}.big input{display:none}
+.pages{margin-top:12px}.pg{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.pg img,.pdf{width:48px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)}
+.pg span{flex:1;font-size:14px}.x{border:none;background:none;font-size:22px;color:var(--bad);padding:4px 10px}
+.ord{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.ord input{width:22px;height:22px;margin-top:2px}
+.ord small{color:var(--muted);display:block}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
+.go{width:100%;min-height:56px;border:none;border-radius:10px;background:var(--ink);color:#fff;font-size:17px;font-weight:600}
+.go:disabled{opacity:.35}.msg{padding:12px;border-radius:8px;margin-bottom:12px;font-size:14px}.err{background:#fde8e6;color:var(--bad)}
+.warn{background:#fff4dc;color:var(--warn);text-align:left}
+.who{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:12px;color:var(--muted)}
+.who b{color:var(--ink)}.link{background:none;border:none;color:var(--brand);font-size:14px;text-decoration:underline;padding:4px}
+.done{text-align:center;padding:30px 14px}.done .tick{font-size:54px;color:var(--ok)}.hide{display:none}
+</style></head><body><div class="wrap">
+<h1>Bahumaan: Bills &amp; Orders</h1>
+<div id="err" class="msg err hide"></div>
+
+<!-- login -->
+<div id="login">
+  <div class="card">
+    <label class="f">Your name *</label><select id="who"><option value="">Loading…</option></select>
+    <label class="f">Your PIN *</label><input id="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password">
+    <div class="hint">Your own PIN. Don't share it. Forgot it? Ask Siddhant.</div>
+  </div>
+  <button id="goLogin" class="go" disabled>Continue</button>
+</div>
+
+<div id="main" class="hide">
+  <div class="who"><span>Signed in as <b id="meName"></b></span><button id="switch" class="link">Not you?</button></div>
+  <div class="tabs"><button id="tBill" class="tab on">📷 Upload bill</button><button id="tOrd" class="tab">📝 Log order</button></div>
+
+  <div id="billForm">
+    <div class="sub">One bill per upload. Photograph every page, flat and readable. Write the received quantity on the bill and sign it first.</div>
+    <div class="card"><label class="f">Type *</label><select id="type"></select></div>
+    <div class="card"><label class="f">Bill pages *</label><div class="btns">
+      <label class="big cam"><span id="camTxt">📷 Take photo</span><input id="cam" type="file" accept="image/*" capture="environment"></label>
+      <label class="big up">📁 Upload<input id="pick" type="file" accept="image/*,application/pdf" multiple></label>
+      </div><div id="pages" class="pages"></div>
+      <div class="hint">2-page bill? Take the first photo, then tap the camera again for the next page.</div></div>
+    <div class="card"><label class="f">Against an order? (optional)</label><select id="ordVendor"></select><div id="ordList"></div>
+      <div class="hint">For things the ops team ordered and logged. Tick the order(s) this bill is for.</div></div>
+    <div class="card"><label class="f">Note (optional)</label><input id="note" type="text" placeholder="e.g. LR no. or print PO no. if not on the bill"></div>
+    <button id="goBill" class="go" disabled>Submit bill</button>
+  </div>
+
+  <div id="orderForm" class="hide">
+    <div class="sub">Log every order when you place it, with the rate agreed.</div>
+    <div class="card">
+      <label class="f">Vendor *</label><select id="oVendor"></select>
+      <input id="oVendorNew" type="text" class="hide" placeholder="Type the vendor name" style="margin-top:8px">
+      <label class="f">Item *</label><input id="oItem" type="text" placeholder="e.g. Polybag 10x14, printed">
+      <div class="row2"><div><label class="f">Qty *</label><input id="oQty" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div><label class="f">Unit</label><select id="oUnit"></select></div></div>
+      <label class="f">Rate ₹ per unit, without GST *</label><input id="oRate" type="number" inputmode="decimal" min="0" step="any">
+      <label class="f">Note (optional)</label><input id="oNote" type="text" placeholder="e.g. delivery by Friday">
+    </div>
+    <button id="goOrd" class="go" disabled>Log order</button>
+  </div>
+</div>
+
+<div id="ok" class="card done hide"><div class="tick">✓</div><h2 id="okTitle" style="margin:6px 0"></h2>
+  <div id="okTxt" class="sub"></div><div id="okWarn" class="msg warn hide"></div>
+  <button id="again" class="big cam" style="width:100%;margin-top:10px"></button></div>
+</div>
+<script>
+// The Apps Script web app address (Deploy > Manage deployments > Web app URL). Not secret: every request needs a personal PIN.
+var API_URL = "https://script.google.com/macros/s/AKfycbwcvXXZzc7SESPsz6qpzZHrOuwK5n6n5zeKvwZh7t47oSw77Xw/exec";
+
+var C = {team: [], types: [], units: [], vendors: [], orders: []}, me = "", pin = "", pages = [], busy = false, mode = "bill";
+function $(i) { return document.getElementById(i); }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); }
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+function opts(list, first) { return (first ? '<option value="">' + first + '</option>' : '') + list.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join(''); }
+function err(t) { $("err").textContent = t; $("err").classList.toggle("hide", !t); if (t) window.scrollTo(0, 0); }
+function show(id) { ["login", "main", "ok"].forEach(function (x) { $(x).classList.toggle("hide", x !== id); }); }
+
+// text/plain avoids a CORS preflight; Apps Script answers through a redirect that fetch follows.
+function api(body) {
+  return fetch(API_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(body), redirect: "follow"})
+    .then(function (r) { if (!r.ok) throw new Error("Server error " + r.status); return r.json(); }, function () { throw new Error("No internet, or the sheet is not reachable. Try again."); })
+    .then(function (j) { if (!j.ok) throw new Error(j.error || "Something went wrong"); return j.data; });
+}
+
+// ---------- login ----------
+function loadTeam() {
+  return fetch(API_URL + "?api=team", {redirect: "follow"}).then(function (r) { return r.json(); }).then(function (j) {
+    C.team = j.team || []; C.types = j.types || []; C.units = j.units || [];
+    $("who").innerHTML = opts(C.team, "Select your name");
+    $("type").innerHTML = opts(C.types, "Select type"); $("oUnit").innerHTML = opts(C.units);
+    var last = store("bb_name"); if (last && C.team.indexOf(last) > -1) $("who").value = last;
+    checkLogin();
+  }).catch(function () { $("who").innerHTML = '<option value="">Could not load. Check internet and reload</option>'; err("Could not reach the sheet. Check your internet and reload the page."); });
+}
+function checkLogin() { $("goLogin").disabled = busy || !$("who").value || !$("pin").value.trim(); }
+$("who").onchange = checkLogin; $("pin").oninput = checkLogin;
+$("pin").onkeydown = function (e) { if (e.key === "Enter" && !$("goLogin").disabled) $("goLogin").click(); };
+function login(name, p, quiet) {
+  busy = true; checkLogin(); $("goLogin").textContent = "Checking…"; if (!quiet) err("");
+  return api({action: "login", name: name, pin: p}).then(function (d) {
+    busy = false; $("goLogin").textContent = "Continue";
+    me = d.name; pin = p; C.vendors = d.vendors || []; C.orders = d.orders || [];
+    store("bb_name", me); store("bb_pin", p);
+    $("meName").textContent = me; fillLists(); show("main"); setMode(mode); err("");
+  }, function (e) {
+    busy = false; $("goLogin").textContent = "Continue"; store("bb_pin", null); $("pin").value = "";
+    show("login"); checkLogin(); if (!quiet || !/internet/.test(e.message)) err(e.message);
+  });
+}
+$("goLogin").onclick = function () { login($("who").value, $("pin").value.trim()); };
+$("switch").onclick = function () { store("bb_pin", null); me = ""; pin = ""; $("pin").value = ""; show("login"); checkLogin(); };
+
+// ---------- shared ----------
+function fillLists() {
+  $("oVendor").innerHTML = opts(C.vendors, "Select vendor") + '<option value="__new">New vendor…</option>';
+  ordVendors();
+}
+function ordVendors() {
+  var v = []; C.orders.forEach(function (o) { if (v.indexOf(o.vendor) < 0) v.push(o.vendor); }); v.sort();
+  $("ordVendor").innerHTML = '<option value="">No / not sure</option>' + v.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
+  renderOrd();
+}
+function renderOrd() {
+  var vn = $("ordVendor").value, h = "";
+  C.orders.forEach(function (o) {
+    if (o.vendor !== vn) return;
+    h += '<label class="ord"><input type="checkbox" value="' + esc(o.id) + '"><span>' + esc(o.item) + ' · ' + esc(o.qty) + ' ' + esc(o.unit) +
+      '<small>' + esc(o.id) + ' · ordered ' + esc(o.date) + (o.by ? ' by ' + esc(o.by) : '') + '</small></span></label>';
+  });
+  $("ordList").innerHTML = h;
+  var b = $("ordList").querySelectorAll("input"); if (b.length === 1) b[0].checked = true;
+}
+$("ordVendor").onchange = renderOrd;
+$("oVendor").onchange = function () { $("oVendorNew").classList.toggle("hide", $("oVendor").value !== "__new"); check(); };
+["type", "note", "oVendorNew", "oItem", "oQty", "oRate"].forEach(function (i) { $(i).oninput = check; $(i).onchange = check; });
+function vendor() { return $("oVendor").value === "__new" ? $("oVendorNew").value.trim() : $("oVendor").value; }
+function check() {
+  $("goBill").disabled = busy || !($("type").value && pages.length);
+  $("goOrd").disabled = busy || !(vendor() && $("oItem").value.trim() && Number($("oQty").value) > 0 && Number($("oRate").value) > 0);
+}
+function setMode(m) {
+  mode = m; $("tBill").classList.toggle("on", m === "bill"); $("tOrd").classList.toggle("on", m === "order");
+  $("billForm").classList.toggle("hide", m !== "bill"); $("orderForm").classList.toggle("hide", m !== "order"); err(""); check();
+}
+$("tBill").onclick = function () { setMode("bill"); }; $("tOrd").onclick = function () { setMode("order"); };
+function done(title, txt, again, warn) {
+  show("ok"); $("okTitle").textContent = title; $("okTxt").textContent = txt; $("again").textContent = again;
+  $("okWarn").textContent = warn || ""; $("okWarn").classList.toggle("hide", !warn); window.scrollTo(0, 0);
+}
+function fail(btn, label) { return function (e) { busy = false; $(btn).textContent = label; err(e.message); check(); if (/PIN|Pick your name/.test(e.message)) { store("bb_pin", null); show("login"); checkLogin(); } }; }
+
+// ---------- bill pages ----------
+function render() {
+  var h = "";
+  pages.forEach(function (p, i) { h += '<div class="pg">' + (p.thumb ? '<img src="' + p.thumb + '">' : '<div class="pdf">PDF</div>') + '<span>Page ' + (i + 1) + '</span><button class="x" data-i="' + i + '">×</button></div>'; });
+  $("pages").innerHTML = h;
+  Array.prototype.forEach.call(document.querySelectorAll(".x"), function (b) { b.onclick = function () { pages.splice(+b.dataset.i, 1); render(); }; });
+  $("camTxt").textContent = pages.length ? "📷 Add next page" : "📷 Take photo"; check();
+}
+function readB64(f) { return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(String(r.result).split(",")[1]); }; r.onerror = rej; r.readAsDataURL(f); }); }
+function shrink(f) {
+  return new Promise(function (res, rej) {
+    var u = URL.createObjectURL(f), img = new Image();
+    img.onload = function () {
+      var m = 2000, s = Math.min(1, m / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u); var d = c.toDataURL("image/jpeg", 0.82); res({mime: "image/jpeg", data: d.split(",")[1], thumb: d});
+    };
+    img.onerror = function () { rej(); }; img.src = u;
+  });
+}
+function add(list) {
+  var fs = Array.prototype.slice.call(list);
+  fs.reduce(function (pr, f) {
+    return pr.then(function () {
+      if (pages.length >= 10) { err("Maximum 10 pages per bill"); return; }
+      if (f.type === "application/pdf") { if (f.size > 10 * 1024 * 1024) { err("PDF too large (max 10 MB)"); return; } return readB64(f).then(function (d) { pages.push({name: f.name, mime: f.type, data: d, thumb: null}); }); }
+      return shrink(f).then(function (p) { p.name = f.name; pages.push(p); }, function () { return readB64(f).then(function (d) { pages.push({name: f.name, mime: f.type || "image/jpeg", data: d, thumb: null}); }); });
+    });
+  }, Promise.resolve()).then(render);
+}
+$("cam").onchange = function (e) { add(e.target.files); e.target.value = ""; };
+$("pick").onchange = function (e) { add(e.target.files); e.target.value = ""; };
+
+// ---------- submit ----------
+$("goBill").onclick = function () {
+  if (busy) return; busy = true; err(""); $("goBill").textContent = "Uploading…"; check();
+  var ids = Array.prototype.map.call($("ordList").querySelectorAll("input:checked"), function (b) { return b.value; });
+  api({action: "upload", name: me, pin: pin, type: $("type").value, note: $("note").value, orderIds: ids,
+       files: pages.map(function (p) { return {name: p.name, mime: p.mime, data: p.data}; })})
+    .then(function (r) {
+      busy = false; $("goBill").textContent = "Submit bill";
+      done("Bill received", r.pages + (r.pages > 1 ? " pages" : " page") + " from " + me + (r.orders ? ", linked to " + r.orders + " order(s)" : "") + ". It will appear in the Bills sheet within 5 minutes.", "Upload another bill");
+    }, fail("goBill", "Submit bill"));
+};
+$("goOrd").onclick = function () {
+  if (busy) return; busy = true; err(""); $("goOrd").textContent = "Saving…"; check();
+  api({action: "order", name: me, pin: pin, vendor: vendor(), item: $("oItem").value.trim(), qty: $("oQty").value, unit: $("oUnit").value, rate: $("oRate").value, note: $("oNote").value})
+    .then(function (r) {
+      busy = false; $("goOrd").textContent = "Log order"; C.orders.push(r.order);
+      if (C.vendors.indexOf(r.order.vendor) < 0) { C.vendors.push(r.order.vendor); C.vendors.sort(); }
+      fillLists();
+      done("Order logged", "Order " + r.id + ": " + r.order.item + ", " + r.order.qty + " " + r.order.unit + " from " + r.order.vendor + ".", "Log another order",
+        r.rateFlag ? "⚠ Rate is higher than the last order (" + r.rateFlag.replace(/^▲\s*/, "") + "). Aaradhya will confirm it with you." : "");
+    }, fail("goOrd", "Log order"));
+};
+$("again").onclick = function () {
+  if (mode === "bill") { pages = []; $("note").value = ""; $("type").value = ""; $("ordVendor").value = ""; renderOrd(); render(); }
+  else { ["oItem", "oQty", "oRate", "oNote", "oVendorNew"].forEach(function (i) { $(i).value = ""; }); $("oVendor").value = ""; $("oVendorNew").classList.add("hide"); }
+  show("main"); check(); window.scrollTo(0, 0);
+};
+
+// ---------- start ----------
+loadTeam().then(function () {
+  var n = store("bb_name"), p = store("bb_pin");
+  if (n && p && C.team.indexOf(n) > -1) login(n, p, true);
+});
+render();
+</script>
+</body></html>
